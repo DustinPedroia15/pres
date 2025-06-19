@@ -2,13 +2,24 @@ import streamlit as st
 import pandas as pd
 import requests
 
-# --- AUTH ---
-password = st.text_input("Enter password", type="password")
-if password != st.secrets["app_password"]:
+# ---------- AUTHENTICATION ----------
+API_KEY = st.secrets["HOLDED_API_KEY"]
+PASSCODE = st.secrets["STREAMLIT_PASSCODE"]
+
+# Require login passcode
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
+
+if not st.session_state.authenticated:
+    user_input = st.text_input("🔐 Enter Passcode to Access", type="password")
+    if user_input == PASSCODE:
+        st.session_state.authenticated = True
+        st.rerun()
+    elif user_input:
+        st.error("Incorrect passcode.")
     st.stop()
 
-# --- CONFIG ---
-API_KEY = st.secrets["api_key"]
+# ---------- CONFIG ----------
 HEADERS = {"accept": "application/json", "key": API_KEY}
 PAGE_SIZE = 100
 ESTIMATE_URL = "https://api.holded.com/api/invoicing/v1/documents/estimate"
@@ -148,3 +159,4 @@ if doc_input:
                     st.download_button("📥 Download CSV", csv, f"{original_docnum}_stock.csv", "text/csv")
         except Exception as e:
             st.error(f"Something went wrong: {e}")
+
